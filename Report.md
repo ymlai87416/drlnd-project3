@@ -204,7 +204,7 @@ Episode 1900	Average Score: 0.34
 Episode 2000	Average Score: 0.47
 ```
 
-At episode 800-900, 110 and 1400-1600, the agents get an average score bigger than +0.5
+At episode 800-900, 1100 and 1400-1600, the agents get an average score bigger than +0.5
 
 
 Here is the trained model in action [link](https://youtu.be/Y33TTszuRwI)

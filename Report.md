@@ -7,7 +7,9 @@
 [image4]: ./images/actor.PNG "actor"
 [image5]: ./images/result.png "result"
 
-# Introduction
+# Project 3: Collaboration and Competition
+
+## Introduction
 For this project, you will work with the [Tennis](https://github.com/Unity-Technologies/ml-agents/blob/master/docs/Learning-Environment-Examples.md#tennis) environment.
 
 ![Trained Agent][image1]
@@ -24,9 +26,9 @@ The task is episodic, and in order to solve the environment, your agents must ge
 The environment is considered solved, when the average (over 100 episodes) of those **scores** is at least +0.5.
 
 
-# Environment
+## Environment
 
-Agent is trained in the following environment
+Two agents are trained in the following environment
 
 * Python 3
 * Pytorch 0.4.1 cuda version 9.2
@@ -34,7 +36,7 @@ Agent is trained in the following environment
 * AMD Ryzen Threadripper 2950X 16-Core Processor
 * Nvidia RTX 2800Ti
 
-# Agent
+## Agent
 
 In this environment, two agents control rackets to bounce a ball over a net. If an agent hits the ball over the net, it receives a reward of +0.1. If an agent lets a ball hit the ground or hits the ball out of bounds, it receives a reward of -0.01. Thus, the goal of each agent is to keep the ball in play.
 
@@ -51,19 +53,19 @@ The state for the first agent looks like:
    0.          0.         -6.83172083  6.          0.          0.        ]]
 ```
 
-# Algorithm
+## Algorithm
 
-MADDPG [1] is used to train the agent.
+MADDPG [1] is used to train two agents.
 
-## Actor-Critic
+### Actor-Critic
 
 In file `model.py`, the class `Actor` implements the actor network, and the class `Critic` implements the critic network.
 
-Each DDPG agent create 4 networks, they are actor_local, actor_target, critic_local and critic_target (refer to class `Agent` of file `ddpg_agent.py`). Learning is done on actor_local and critic_local, and soft update is used to gradually apply the weighting of the local network to the target network.
+Each DDPG agent creates 4 networks, they are actor_local, actor_target, critic_local, and critic_target (refer to class `Agent` of file `ddpg_agent.py`). Learning is done on actor_local and critic_local, and soft update is used to gradually apply the weighting of the local network to the target network.
 
-### Actor network
+#### Actor network
 
-The network acts as a policy base method, the input is current state, the output is an optimal action.
+The network acts as a policy base function, the input is the current state, the output is an optimal action.
 
 ```
 Actor(
@@ -74,9 +76,9 @@ Actor(
 )
 ```
 
-### Critic network
+#### Critic network
 
-The critic network as a value base network, input is the current state (as input of fcs1 layer) and the actions taken by 2 agents (as input of fc2 layer), output is the expected reward.
+The critic network as a value base function, the input is the current state (as an input of fcs1 layer), and the actions are taken by 2 agents (as inputs of fc2 layer), the output is the expected reward.
 
 ```
 Critic(
@@ -87,46 +89,46 @@ Critic(
 )
 ```
 
-## Centralized critic for each agent
+### Centralized critic for each agent
 
 The critic network explicitly uses the decision-making policies of other agents, agents can learn approximate models of other agents online and effectively use them in their own policy learning procedure.
 
-Learning function is implemented in file maddpg_agent.py. In class `MADDPGAgent` function `learn`. 
+The learning function is implemented in file maddpg_agent.py. In class `MADDPGAgent` function `learn`. 
 
-The section of code updating the critic network is Line 81-98. The next action of each agent and the real reward is used to improve the critic network to provide a better Q-function.
+The section of code updating the critic network is Line 81-98. The next action of each agent and the real reward is used to improve the critic network to provide a better value function.
 
 The implementation refers to the equation (6) of the paper [1].
 
-![Critic network update][image3]
+![Critic network update][image4]
 
 
-The section of code updating the actor network is Line 100-111. The next action of each agent and Q-function from critic network is considered to find a better policy function.
+The section of code updating the actor network is Line 100-111. The next action of each agent and value function from the critic network is considered to find a better policy function.
 
 The implementation refers to the equation (5) of the paper [1].
 
-![Actor network update][image4]
+![Actor network update][image3]
 
 Soft update is then applied to both actor and critic network.
 
-## Reply Buffer
+### Reply Buffer
 
 In file `maddpg_agent.py`, the class `ReplayBuffer` implements the replay buffer, the replay buffer save all experience experienced by 2 agents. Random experiences are retrieved from time to time to train both actor and critic network.
 
-## Ornstein-Uhlenbeck Process for Noise generation
+### Ornstein-Uhlenbeck Process for Noise generation
 
 In file `maddpg_agent.py`, the class `OUNoise` implements the noise generation process to allow DDPG to explore around the optimal action given by the actor network. Please see the hyperparameter section for parameter value selection.
 
-## Fine tuning
+### Fine-tuning
 
 In this implementation, several techniques are employed.
 
 Batch normalization is used to allow learn effectively across different types of units.
 
-Gradient clipping is also used to keep the score stable across 100 episodes by avoiding the network making updates that are too far away from the current weighting. Although gradient clipping is applied, the agent starts to perform horribly starting around episode 2000 and show no evidence of recovery.
+Gradient clipping is also used to keep the score stable across 100 episodes by avoiding the network making updates that are too far away from the current weighting. Although gradient clipping is applied, 2 agents start to perform horribly starting around episode 2000 and show no evidence of recovery.
 
-The model is trained while the Ornstein-Uhlenbeck process is turned of. It helps these agents to archive score > 0.5 given the current parameter, if I turn on the Ornstein-Uhlenbeck process, agents are more likely to hit the ball out of the table, and the score seldom greater than 0.3.
+The model is trained while the Ornstein-Uhlenbeck process is turned OFF. It helps these agents to archive score > 0.5 given the current parameter, if I turn on the Ornstein-Uhlenbeck process, agents are more likely to hit the ball out of the table, and the score seldom greater than 0.3.
 
-# Hyperparameters
+## Hyperparameters
 
 Here is the network structure of actor
 
@@ -172,7 +174,7 @@ Ornstein-Uhlenbeck process: μ = 0, 𝜃 = 0.15, 𝜎 = 0.08
 
 Noise decay at a rate 0.995 per each learning
 
-# Result
+## Result
 
 The graph shows that the agents get an average score of +0.5 (over 100 consecutive episodes, after taking the maximum over both agents).
 
@@ -205,7 +207,7 @@ Episode 2000	Average Score: 0.47
 At episode 800-900, 110 and 1400-1600, the agents get an average score bigger than +0.5
 
 
-Here is trained model in action [link](https://youtu.be/Y33TTszuRwI)
+Here is the trained model in action [link](https://youtu.be/Y33TTszuRwI)
 
 ```
 Score (max over agents) from episode 1: 2.600000038743019
@@ -220,14 +222,14 @@ Score (max over agents) from episode 9: 2.600000038743019
 ```
 
 
-# Future works
+## Future works
 
-Here is some idea to further improve the performance and the learning efficiency of the agent.
+Here are some ideas to further improve the performance and the learning efficiency of the agent.
 
 * Implement prioritized experience reply buffer.
-* Turn on Ornstein-Uhlenbeck process during training. It may make agent more resillient to other agent mistake[2]. You can see that either agents work perfectly and complete 300 timestep together or they fail very early.
+* Turn on Ornstein-Uhlenbeck process during training. It may make both agents more resilient to other agent's mistakes[2]. From the above video, you can see that either 2 agents work perfectly together and finish the episode without dropping the ball or they fail at an early state.
 
-# Reference
+## Reference
 
 [1] Lowe, Ryan, et al. "Multi-agent actor-critic for mixed cooperative-competitive environments." Advances in neural information processing systems. 2017.
 
